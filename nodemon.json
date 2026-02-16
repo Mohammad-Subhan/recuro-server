@@ -4,6 +4,6 @@
     ],
     "ext": "ts",
     "execMap": {
-        "ts": "node --loader ts-node/esm"
+        "ts": "tsx"
     }
 }
