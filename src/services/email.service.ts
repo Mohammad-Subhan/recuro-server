@@ -23,6 +23,7 @@ const sendEmail = async (mailOptions: MailOptions) => {
         // send email using nodemailer
         await transporter.sendMail(mailOptions);
     } catch (error) {
+        console.error("Error sending email:", error);
         throw new AppError("Failed to send email", 500);
     }
 }
