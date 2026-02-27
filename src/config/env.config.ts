@@ -2,7 +2,10 @@ const requiredEnvVars = [
     "MONGODB_URI",
     "EMAIL_USER",
     "EMAIL_PASS",
-    "JWT_SECRET"
+    "JWT_SECRET",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
 ];
 
 const verifyEnvVars = () => {
