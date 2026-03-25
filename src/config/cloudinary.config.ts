@@ -39,17 +39,17 @@ const videoStorage = new CloudinaryStorage({
     params: {
         folder: "recura/videos",
         resource_type: "video",
-        allowed_formats: ["mp4", "mov"],
+        allowed_formats: ["mp4", "mov", "webm"],
     } as any,
 });
 
 export const uploadVideo = multer({
     storage: videoStorage,
-    limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB limit
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
     fileFilter: (_req, file, cb) => {
         console.log("Files:", file);
         console.log("File mimetype:", file.mimetype);
-        const allowed = ["video/mp4", "video/quicktime"];
+        const allowed = ["video/mp4", "video/quicktime", "video/webm"];
         if (allowed.includes(file.mimetype)) {
             cb(null, true);
         } else {
@@ -89,7 +89,7 @@ const combinedVideoThumbnailStorage = new CloudinaryStorage({
             return {
                 folder: "recura/videos",
                 resource_type: "video",
-                allowed_formats: ["mp4", "mov"],
+                allowed_formats: ["mp4", "mov", "webm"],
             };
         }
         // thumbnail
@@ -104,10 +104,10 @@ const combinedVideoThumbnailStorage = new CloudinaryStorage({
 // Single multer instance that handles both fields in one stream pass
 export const uploadVideoAndThumbnail = multer({
     storage: combinedVideoThumbnailStorage,
-    limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB (covers video)
+    limits: { fileSize: 105 * 1024 * 1024 }, // 105MB (100MB video + 5MB thumbnail)
     fileFilter: (_req, file, cb) => {
-        const allowedVideo = ["video/mp4", "video/quicktime"];
-        const allowedImage = ["image/jpeg", "image/jpg", "image/png"];
+        const allowedVideo = ["video/mp4", "video/quicktime", "video/webm"];
+        const allowedImage = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
         if (file.fieldname === "video" && allowedVideo.includes(file.mimetype)) {
             cb(null, true);
