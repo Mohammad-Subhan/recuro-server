@@ -18,12 +18,22 @@ const videoSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    videoPublicId: {
+        type: String,
+    },
     thumbnailUrl: {
         type: String,
         required: true
     },
+    thumbnailPublicId: {
+        type: String,
+    },
     duration: {
         type: Number, // Duration in seconds
+        default: 0
+    },
+    size: {
+        type: Number, // File size in bytes
         default: 0
     },
     transcription: {

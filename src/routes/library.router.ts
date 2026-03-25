@@ -1,14 +1,17 @@
 import express from "express";
 import {
-    getAllVideos,
-    uploadVideo,
-    uploadRecordedVideo,
-    getVideoById,
-    updateVideo,
-    deleteVideo,
-    getVideoByShareLink
+  getAllVideos,
+  uploadVideoFile,
+  uploadRecordedVideo,
+  getVideoById,
+  updateVideo,
+  deleteVideo,
+  getVideoByShareLink,
 } from "../controllers/library.controller.js";
 import authenticateUser from "../middlewares/auth.handler.js";
+import {
+  uploadVideoAndThumbnail,
+} from "../config/cloudinary.config.js";
 
 const router = express.Router();
 
@@ -24,8 +27,15 @@ router.get("/", getAllVideos);
 // Get single video by ID
 router.get("/:id", getVideoById);
 
-// Upload new video
-router.post("/upload", uploadVideo);
+// Upload video files (with Cloudinary)
+router.post(
+  "/upload-file",
+  uploadVideoAndThumbnail.fields([
+    { name: "video", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  uploadVideoFile,
+);
 
 // Upload recorded video
 router.post("/upload-recorded", uploadRecordedVideo);

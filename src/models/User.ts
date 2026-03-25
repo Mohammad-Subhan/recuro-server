@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    storageUsed: {
+        type: Number,
+        default: 0 // Storage in bytes
+    },
+    storageLimit: {
+        type: Number,
+        default: 1024 * 1024 * 1024 // 1GB in bytes
+    }
 });
 
 const User = mongoose.model("User", userSchema);
