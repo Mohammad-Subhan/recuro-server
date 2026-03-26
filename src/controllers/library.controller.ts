@@ -4,6 +4,7 @@ import User from "../models/User.js";
 import AppError from "../utils/AppError.js";
 import crypto from "crypto";
 import { cloudinary } from "../config/cloudinary.config.js";
+import Groq from "groq-sdk";
 
 // Helper to extract Cloudinary public ID natively based on our folder names
 const extractPublicId = (url: string) => {
@@ -72,6 +73,15 @@ const uploadVideoFile = async (req: Request, res: Response) => {
 
     const videoFile = files.video[0];
     const thumbnailFile = files.thumbnail[0];
+
+    // Validate video file size (20MB limit)
+    const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20MB
+    if (videoFile.size > MAX_VIDEO_SIZE) {
+      throw new AppError(
+        `Video file is too large. Maximum size is 20MB, but the video is ${(videoFile.size / (1024 * 1024)).toFixed(2)} MB`,
+        400,
+      );
+    }
 
     // Get video file size
     const videoSize = videoFile.size;
@@ -275,19 +285,25 @@ const deleteVideo = async (req: Request, res: Response) => {
     try {
       // Use the pre-saved explicitly mapped IDs on the new models.
       // Fallback natively to parsing it live just in case it's an older video without these columns.
-      const videoPublicId = video.videoPublicId || extractPublicId(video.videoUrl);
-      const thumbPublicId = video.thumbnailPublicId || extractPublicId(video.thumbnailUrl);
+      const videoPublicId =
+        video.videoPublicId || extractPublicId(video.videoUrl);
+      const thumbPublicId =
+        video.thumbnailPublicId || extractPublicId(video.thumbnailUrl);
 
       const deletePromises = [];
 
       if (videoPublicId) {
         deletePromises.push(
-          cloudinary.uploader.destroy(videoPublicId, { resource_type: "video" })
+          cloudinary.uploader.destroy(videoPublicId, {
+            resource_type: "video",
+          }),
         );
       }
       if (thumbPublicId) {
         deletePromises.push(
-          cloudinary.uploader.destroy(thumbPublicId, { resource_type: "image" })
+          cloudinary.uploader.destroy(thumbPublicId, {
+            resource_type: "image",
+          }),
         );
       }
 
@@ -337,6 +353,72 @@ const getVideoByShareLink = async (req: Request, res: Response) => {
   }
 };
 
+// Transcribe video
+const transcribeVideo = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const { id } = req.params;
+
+    // Find the video
+    const video = await Video.findOne({ _id: id, author: req.user._id });
+
+    if (!video) {
+      throw new AppError("Video not found", 404);
+    }
+
+    // Check if transcription already exists
+    if (video.transcription) {
+      return res.status(200).json({
+        message: "Transcription already exists",
+        data: {
+          transcription: video.transcription,
+        },
+      });
+    }
+
+    // Initialize Groq client
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+    // Fetch video from Cloudinary
+    const videoResponse = await fetch(video.videoUrl);
+
+    if (!videoResponse.ok) {
+      throw new AppError("Failed to fetch video from Cloudinary", 500);
+    }
+
+    const blob = await videoResponse.blob();
+    const file = new File([blob], "audio.mp4", { type: "audio/mp4" });
+
+    // Transcribe using Groq Whisper
+    const transcription = await groq.audio.transcriptions.create({
+      file,
+      model: "whisper-large-v3-turbo",
+      response_format: "json",
+      language: "en", // Remove this for auto-detection
+    });
+
+    // Save transcription to database
+    video.transcription = transcription.text;
+    await video.save();
+
+    res.status(200).json({
+      message: "Video transcribed successfully",
+      data: {
+        transcription: transcription.text,
+      },
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    console.error("Transcription error:", error);
+    throw new AppError("Failed to transcribe video", 500);
+  }
+};
+
 export {
   getAllVideos,
   uploadVideoFile,
@@ -345,4 +427,5 @@ export {
   updateVideo,
   deleteVideo,
   getVideoByShareLink,
+  transcribeVideo,
 };

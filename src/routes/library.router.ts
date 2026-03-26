@@ -7,6 +7,7 @@ import {
   updateVideo,
   deleteVideo,
   getVideoByShareLink,
+  transcribeVideo,
 } from "../controllers/library.controller.js";
 import authenticateUser from "../middlewares/auth.handler.js";
 import {
@@ -46,5 +47,8 @@ router.patch("/:id", updateVideo);
 
 // Delete video
 router.delete("/:id", deleteVideo);
+
+// Transcribe video
+router.post("/:id/transcribe", transcribeVideo);
 
 export default router;

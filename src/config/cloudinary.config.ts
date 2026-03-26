@@ -45,7 +45,7 @@ const videoStorage = new CloudinaryStorage({
 
 export const uploadVideo = multer({
     storage: videoStorage,
-    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
     fileFilter: (_req, file, cb) => {
         console.log("Files:", file);
         console.log("File mimetype:", file.mimetype);
@@ -104,7 +104,7 @@ const combinedVideoThumbnailStorage = new CloudinaryStorage({
 // Single multer instance that handles both fields in one stream pass
 export const uploadVideoAndThumbnail = multer({
     storage: combinedVideoThumbnailStorage,
-    limits: { fileSize: 105 * 1024 * 1024 }, // 105MB (100MB video + 5MB thumbnail)
+    limits: { fileSize: 25 * 1024 * 1024 }, // 25MB (20MB video + 5MB thumbnail)
     fileFilter: (_req, file, cb) => {
         const allowedVideo = ["video/mp4", "video/quicktime", "video/webm"];
         const allowedImage = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
