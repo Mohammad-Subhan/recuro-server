@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import AppError from "../utils/AppError.js";
 import crypto from "crypto";
 import { cloudinary } from "../config/cloudinary.config.js";
-import Groq from "groq-sdk";
+import { Groq } from "groq-sdk";
 
 // Helper to extract Cloudinary public ID natively based on our folder names
 const extractPublicId = (url: string) => {
